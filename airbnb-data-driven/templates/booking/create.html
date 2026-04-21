@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}Book {{ property.title }} - ZimBnB{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/booking.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="booking-page">
+
+    <!-- Back link -->
+    <a href="/property/{{ property.property_id }}" class="back-link">← Back to property</a>
+
+    <div class="booking-grid">
+
+        <!-- ===== LEFT: FORM ===== -->
+        <div class="booking-form-col">
+            <div class="card">
+                <div class="card-body booking-card-body">
+                    <h2 class="booking-card-title">Confirm your booking</h2>
+                    <p class="booking-card-sub">{{ property.title }} · {{ property.city }}</p>
+
+                    {% if msg %}
+                    <div class="alert {% if success %}alert-success{% else %}alert-error{% endif %}">
+                        {{ msg }}
+                    </div>
+                    {% endif %}
+
+                    {% if success %}
+                    <div class="booking-success">
+                        <div class="success-icon">✓</div>
+                        <h3>Booking Confirmed!</h3>
+                        <p>Your reservation has been made. We've sent the details to your account.</p>
+                        <a href="/guest/dashboard" class="btn btn-primary success-dashboard-btn">View My Trips</a>
+                    </div>
+
+                    {% else %}
+                    <form method="POST" id="bookingForm">
+
+                        <div class="date-row">
+                            <div class="form-group">
+                                <label for="check_in">Check-in</label>
+                                <input type="date" name="check_in" id="check_in"
+                                       value="{{ prefill_check_in }}" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="check_out">Check-out</label>
+                                <input type="date" name="check_out" id="check_out"
+                                       value="{{ prefill_check_out }}" required>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="num_guests">Guests</label>
+                            <select name="num_guests" id="num_guests" required>
+                                {% for i in range(1, property.max_guests + 1) %}
+                                <option value="{{ i }}"
+                                    {% if i == prefill_num_guests %}selected{% endif %}>
+                                    {{ i }} guest{% if i > 1 %}s{% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <!-- Price Breakdown -->
+                        <div class="price-summary">
+                            <div class="price-summary__row">
+                                <span id="nightsLabel">Select dates to see price</span>
+                                <span id="subtotalVal"></span>
+                            </div>
+                            <div class="price-summary__row" id="feeRow" style="display:none;">
+                                <span>ZimBnB service fee (12%)</span>
+                                <span id="feeVal"></span>
+                            </div>
+                            <div class="price-summary__row price-summary__row--total">
+                                <span>Total</span>
+                                <span id="totalVal">—</span>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary booking-submit-btn" id="submitBtn">
+                            Confirm Booking
+                        </button>
+                        <p class="booking-note">You won't be charged until your host confirms.</p>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== RIGHT: PROPERTY SUMMARY ===== -->
+        <div class="booking-summary-col">
+            <div class="card">
+                <div class="card-body summary-card-body">
+
+                    {% if property.images %}
+                    <img src="{{ property.images[0] }}" alt="{{ property.title }}" class="summary-img">
+                    {% else %}
+                    <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=600"
+                         alt="{{ property.title }}" class="summary-img">
+                    {% endif %}
+
+                    <p class="prop-type-small">{{ property.property_type | capitalize }}</p>
+                    <h4 class="summary-title">{{ property.title }}</h4>
+                    <p class="summary-location">📍 {{ property.city }}{% if property.province %}, {{ property.province }}{% endif %}</p>
+
+                    <div class="summary-stats">
+                        <div class="summary-stat-row">
+                            <span>🛏️ Bedrooms</span><span>{{ property.num_bedrooms }}</span>
+                        </div>
+                        <div class="summary-stat-row">
+                            <span>🚿 Bathrooms</span><span>{{ property.num_bathrooms }}</span>
+                        </div>
+                        <div class="summary-stat-row">
+                            <span>👥 Max guests</span><span>{{ property.max_guests }}</span>
+                        </div>
+                    </div>
+
+                    <div class="summary-price-box">
+                        <div class="summary-price-row">
+                            <span>Price per night</span>
+                            <span>${{ property.price_per_night }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+
+<script>
+(function () {
+    const pricePerNight = {{ property.price_per_night }};
+    const SERVICE_FEE_RATE = 0.12;
+
+    const ciInput  = document.getElementById('check_in');
+    const coInput  = document.getElementById('check_out');
+
+    const nightsLabel = document.getElementById('nightsLabel');
+    const subtotalVal = document.getElementById('subtotalVal');
+    const feeRow      = document.getElementById('feeRow');
+    const feeVal      = document.getElementById('feeVal');
+    const totalVal    = document.getElementById('totalVal');
+
+    // Set minimum dates
+    const today = new Date().toISOString().split('T')[0];
+    if (!ciInput.value) ciInput.min = today;
+    if (!coInput.value) coInput.min = today;
+
+    function calcPrice() {
+        const ci = ciInput.value;
+        const co = coInput.value;
+
+        if (!ci || !co) {
+            nightsLabel.textContent = 'Select dates to see price';
+            subtotalVal.textContent = '';
+            feeRow.style.display    = 'none';
+            totalVal.textContent    = '—';
+            return;
+        }
+
+        const nights = Math.round((new Date(co) - new Date(ci)) / 86400000);
+
+        if (nights <= 0) {
+            nightsLabel.textContent = 'Check-out must be after check-in';
+            subtotalVal.textContent = '';
+            feeRow.style.display    = 'none';
+            totalVal.textContent    = '—';
+            return;
+        }
+
+        const subtotal = pricePerNight * nights;
+        const fee      = Math.round(subtotal * SERVICE_FEE_RATE);
+        const total    = subtotal + fee;
+
+        nightsLabel.textContent = '$' + pricePerNight + ' × ' + nights + ' night' + (nights > 1 ? 's' : '');
+        subtotalVal.textContent = '$' + subtotal;
+        feeRow.style.display    = 'flex';
+        feeVal.textContent      = '$' + fee;
+        totalVal.textContent    = '$' + total;
+    }
+
+    ciInput.addEventListener('change', function () {
+        if (ciInput.value) coInput.min = ciInput.value;
+        calcPrice();
+    });
+    coInput.addEventListener('change', calcPrice);
+
+    // Trigger on load if dates were pre-filled from the detail page
+    calcPrice();
+}());
+</script>
+{% endblock %}

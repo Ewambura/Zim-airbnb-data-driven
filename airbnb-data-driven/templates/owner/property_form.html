@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}{{ 'Edit' if property else 'Create' }} Property - ZimBnB{% endblock %}
+
+{% block content %}
+<div style="max-width:700px; margin:0 auto;">
+    <a href="/owner/properties" style="color:#ff385c; text-decoration:none; display:inline-block; margin-bottom:20px;">
+        &larr; Back to properties
+    </a>
+
+    <div class="card">
+        <div class="card-body" style="padding:30px;">
+            <h2 style="margin-bottom:25px;">{{ 'Edit Property' if property else 'List a New Property' }}</h2>
+
+            {% if msg %}
+            <div class="alert alert-error">{{ msg }}</div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="title">Property Title</label>
+                    <input type="text" name="title" id="title" value="{{ property.title if property else '' }}" placeholder="Cozy Downtown Apartment" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea name="description" id="description" rows="4" placeholder="Describe your property...">{{ property.description if property else '' }}</textarea>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div class="form-group">
+                        <label for="property_type">Property Type</label>
+                        <select name="property_type" id="property_type" required>
+                            <option value="">Select type</option>
+                            <option value="house" {{ 'selected' if property and property.property_type == 'house' }}>House</option>
+                            <option value="apartment" {{ 'selected' if property and property.property_type == 'apartment' }}>Apartment</option>
+                            <option value="cabin" {{ 'selected' if property and property.property_type == 'cabin' }}>Cabin</option>
+                            <option value="villa" {{ 'selected' if property and property.property_type == 'villa' }}>Villa</option>
+                            <option value="condo" {{ 'selected' if property and property.property_type == 'condo' }}>Condo</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="price_per_night">Price per Night ($)</label>
+                        <input type="number" name="price_per_night" id="price_per_night" value="{{ property.price_per_night if property else '' }}" placeholder="100" min="1" step="1" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="address">Address</label>
+                    <input type="text" name="address" id="address" value="{{ property.address if property else '' }}" placeholder="123 Main Street">
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                    <div class="form-group">
+                        <label for="province">Province</label>
+                        <select name="province" id="province" required>
+                            <option value="">Select province</option>
+                            <option value="Bulawayo" {{ 'selected' if property and property.province == 'Bulawayo' }}>Bulawayo</option>
+                            <option value="Harare" {{ 'selected' if property and property.province == 'Harare' }}>Harare</option>
+                            <option value="Manicaland" {{ 'selected' if property and property.province == 'Manicaland' }}>Manicaland</option>
+                            <option value="Mashonaland Central" {{ 'selected' if property and property.province == 'Mashonaland Central' }}>Mashonaland Central</option>
+                            <option value="Mashonaland East" {{ 'selected' if property and property.province == 'Mashonaland East' }}>Mashonaland East</option>
+                            <option value="Mashonaland West" {{ 'selected' if property and property.province == 'Mashonaland West' }}>Mashonaland West</option>
+                            <option value="Masvingo" {{ 'selected' if property and property.province == 'Masvingo' }}>Masvingo</option>
+                            <option value="Matabeleland North" {{ 'selected' if property and property.province == 'Matabeleland North' }}>Matabeleland North</option>
+                            <option value="Matabeleland South" {{ 'selected' if property and property.province == 'Matabeleland South' }}>Matabeleland South</option>
+                            <option value="Midlands" {{ 'selected' if property and property.province == 'Midlands' }}>Midlands</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="city">City</label>
+                        <select name="city" id="city" required>
+                            <option value="">Select province first</option>
+                        </select>
+                    </div>
+                </div>
+
+<script>
+const citiesByProvince = {
+    'Bulawayo':            ['Bulawayo'],
+    'Harare':              ['Harare', 'Chitungwiza', 'Epworth', 'Ruwa'],
+    'Manicaland':          ['Mutare', 'Rusape', 'Chipinge', 'Chimanimani', 'Nyanga'],
+    'Mashonaland Central': ['Bindura', 'Shamva', 'Guruve', 'Mount Darwin', 'Mvurwi'],
+    'Mashonaland East':    ['Marondera', 'Murewa', 'Macheke', 'Mutoko', 'Wedza'],
+    'Mashonaland West':    ['Chinhoyi', 'Karoi', 'Kadoma', 'Chegutu', 'Norton', 'Kariba'],
+    'Masvingo':            ['Masvingo', 'Chiredzi', 'Triangle', 'Bikita', 'Gutu'],
+    'Matabeleland North':  ['Victoria Falls', 'Hwange', 'Lupane', 'Binga', 'Nkayi'],
+    'Matabeleland South':  ['Gwanda', 'Beitbridge', 'Plumtree', 'Filabusi', 'Esigodini'],
+    'Midlands':            ['Gweru', 'Kwekwe', 'Zvishavane', 'Shurugwi', 'Gokwe', 'Redcliff']
+};
+
+const provinceSelect = document.getElementById('province');
+const citySelect     = document.getElementById('city');
+const savedCity      = "{{ property.city if property else '' }}";
+
+function populateCities(province, selected) {
+    citySelect.innerHTML = '';
+    const cities = citiesByProvince[province] || [];
+    if (!cities.length) {
+        citySelect.innerHTML = '<option value="">Select province first</option>';
+        return;
+    }
+    cities.forEach(function(c) {
+        const opt = document.createElement('option');
+        opt.value = c;
+        opt.textContent = c;
+        if (c === selected) opt.selected = true;
+        citySelect.appendChild(opt);
+    });
+}
+
+provinceSelect.addEventListener('change', function() {
+    populateCities(this.value, '');
+});
+
+// On page load, if a province is already selected (edit mode), populate cities and restore saved city
+if (provinceSelect.value) {
+    populateCities(provinceSelect.value, savedCity);
+}
+</script>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:15px;">
+                    <div class="form-group">
+                        <label for="num_bedrooms">Bedrooms</label>
+                        <input type="number" name="num_bedrooms" id="num_bedrooms" value="{{ property.num_bedrooms if property else '' }}" placeholder="2" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="num_bathrooms">Bathrooms</label>
+                        <input type="number" name="num_bathrooms" id="num_bathrooms" value="{{ property.num_bathrooms if property else '' }}" placeholder="1" min="0" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="max_guests">Max Guests</label>
+                        <input type="number" name="max_guests" id="max_guests" value="{{ property.max_guests if property else '' }}" placeholder="4" min="1" required>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:15px; margin-top:20px;">
+                    <button type="submit" class="btn btn-primary" style="flex:1;">
+                        {{ 'Update Property' if property else 'Create Property' }}
+                    </button>
+                    <a href="/owner/properties" class="btn btn-secondary" style="flex:1; text-align:center;">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

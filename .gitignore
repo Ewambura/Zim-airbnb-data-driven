@@ -1,0 +1,40 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Flask session files
+flask_session/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*.orig
+
+# Config (contains DB credentials — copy config.example.yml and fill in your values)
+config.yml
+
+# Uploads (user-generated content, not tracked in git)
+**/static/uploads/*
+!**/static/uploads/.gitkeep
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+.env.*

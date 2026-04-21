@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}My Properties - ZimBnB{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:30px;">
+    <h1>My Properties</h1>
+    <a href="/owner/property/create" class="btn btn-primary">Add New Property</a>
+</div>
+
+{% if properties %}
+<div class="grid">
+    {% for prop in properties %}
+    <div class="card">
+        <img src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=400" alt="{{ prop.title }}" style="height:150px;">
+        <div class="card-body">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div>
+                    <h3 style="margin-bottom:5px;">{{ prop.title }}</h3>
+                    <p class="location">{{ prop.city }}</p>
+                </div>
+                <span class="price">${{ prop.price_per_night }}</span>
+            </div>
+
+            <div style="display:flex; gap:15px; margin:15px 0; color:#6b7280; font-size:14px;">
+                <span>{{ prop.total_bookings or 0 }} bookings</span>
+                <span>{{ prop.avg_rating or 'No' }} rating</span>
+                <span>{{ prop.total_reviews or 0 }} reviews</span>
+            </div>
+
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a href="/property/{{ prop.property_id }}" class="btn btn-secondary" style="padding:6px 12px; font-size:13px;">View</a>
+                <a href="/owner/property/{{ prop.property_id }}/edit" class="btn btn-secondary" style="padding:6px 12px; font-size:13px;">Edit</a>
+                <a href="/owner/property/{{ prop.property_id }}/images" class="btn btn-secondary" style="padding:6px 12px; font-size:13px;">Images</a>
+                <form action="/owner/property/{{ prop.property_id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this property?');">
+                    <button type="submit" class="btn" style="padding:6px 12px; font-size:13px; background:#dc2626; color:white;">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body" style="text-align:center; padding:50px;">
+        <h3 style="color:#6b7280;">No properties yet</h3>
+        <p style="color:#9ca3af; margin:15px 0;">Start listing your properties to earn money!</p>
+        <a href="/owner/property/create" class="btn btn-primary">Add Your First Property</a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% block title %}Reviews - ZimBnB{% endblock %}
+
+{% block content %}
+<a href="/owner/dashboard" class="back-link">&larr; Back to Dashboard</a>
+<h1 style="margin-bottom:10px;">Reviews Received</h1>
+
+<div style="display:flex; gap:20px; align-items:center; margin-bottom:30px;">
+    <div style="font-size:48px; font-weight:700;">{{ rating.average_rating or 'N/A' }}</div>
+    <div>
+        <div class="rating" style="font-size:24px;">
+            {% if rating.average_rating %}
+                {% for i in range(rating.average_rating|int) %}&#9733;{% endfor %}
+                {% for i in range(5 - rating.average_rating|int) %}&#9734;{% endfor %}
+            {% else %}
+                &#9734;&#9734;&#9734;&#9734;&#9734;
+            {% endif %}
+        </div>
+        <div style="color:#6b7280;">{{ rating.total_reviews or 0 }} total reviews</div>
+    </div>
+</div>
+
+{% if reviews %}
+<div class="card">
+    <div class="card-body">
+        {% for review in reviews %}
+        <div style="padding:20px 0; border-bottom:1px solid #e5e7eb;">
+            <div style="display:flex; justify-content:space-between; margin-bottom:10px;">
+                <div>
+                    <span class="rating">
+                        {% for i in range(review.rating) %}&#9733;{% endfor %}
+                        {% for i in range(5 - review.rating) %}&#9734;{% endfor %}
+                    </span>
+                    <span style="color:#6b7280; font-size:14px; margin-left:10px;">{{ review.review_type }}</span>
+                </div>
+                <span style="color:#9ca3af; font-size:13px;">{{ review.dated_posted_ }}</span>
+            </div>
+            <p style="color:#4b5563; line-height:1.6;">{{ review.comment }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body" style="text-align:center; padding:50px;">
+        <h3 style="color:#6b7280;">No reviews yet</h3>
+        <p style="color:#9ca3af; margin-top:10px;">Reviews from guests will appear here.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{% block title %}ZimBnB{% endblock %}</title>
+<link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+{% block extra_css %}{% endblock %}
+<script src="https://unpkg.com/lucide@0.474.0/dist/umd/lucide.min.js"></script>
+</head>
+
+<body>
+
+<!-- ===== NAVBAR ===== -->
+<nav class="navbar">
+
+    <!-- Left: Logo -->
+    <a href="/" class="nav-logo">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z" fill="#ff385c"/>
+            <path d="M16 8c-2.5 0-4.5 2-4.5 4.5 0 4 4.5 9.5 4.5 9.5s4.5-5.5 4.5-9.5C20.5 10 18.5 8 16 8z" fill="white"/>
+        </svg>
+        <span>ZimBnB</span>
+    </a>
+
+    <!-- Center: Search pill -->
+    <div class="nav-search">
+        <form action="/properties" method="GET" class="nav-search-form">
+            <div class="nav-search-pill">
+                <input
+                    type="text"
+                    name="city"
+                    placeholder="Where in Zimbabwe?"
+                    value="{{ request.args.get('city', '') }}"
+                    class="nav-search-input"
+                    autocomplete="off">
+                <div class="nav-search-sep"></div>
+                <button type="submit" class="nav-search-btn" aria-label="Search">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Right: User actions -->
+    <div class="nav-actions">
+        {% if session.user_id %}
+            {% if session.role == 'guest' %}
+            <a href="/guest/dashboard" class="nav-link">My Trips</a>
+            {% elif session.role == 'owner' %}
+            <a href="/owner/dashboard" class="nav-link">Dashboard</a>
+            <a href="/owner/properties" class="nav-link">My Properties</a>
+            {% elif session.role == 'admin' %}
+            <a href="/admin/dashboard" class="nav-link">Admin</a>
+            {% endif %}
+            <div class="nav-user-menu">
+                <button class="nav-user-btn" id="userMenuBtn" aria-expanded="false">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+                    </svg>
+                    <div class="nav-avatar">{{ session.first_name[0] | upper }}</div>
+                </button>
+                <div class="nav-dropdown" id="userDropdown">
+                    <div class="nav-dropdown-header">
+                        <strong>{{ session.first_name }} {{ session.last_name }}</strong>
+                        <span>{{ session.email }}</span>
+                        <span class="role-badge role-badge--{{ session.role }}">
+                            {% if session.role == 'admin' %}🛡️ Admin
+                            {% elif session.role == 'owner' %}🏠 Property Owner
+                            {% else %}✈️ Guest
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="nav-dropdown-divider"></div>
+                    <a href="/logout" class="nav-dropdown-item nav-dropdown-item--danger">Sign out</a>
+                </div>
+            </div>
+        {% else %}
+            {% if request.path != '/' %}
+            <a href="/register" class="nav-link">Become a Host</a>
+            {% endif %}
+            <a href="/login" class="nav-btn-login">Log in</a>
+            <a href="/register" class="nav-btn-signup">Sign up</a>
+        {% endif %}
+
+        <!-- Mobile hamburger -->
+        <button class="nav-hamburger" id="mobileMenuBtn" aria-label="Menu">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+        </button>
+    </div>
+</nav>
+
+<!-- Mobile search (shown below navbar on mobile) -->
+<div class="mobile-search" id="mobileSearch">
+    <form action="/properties" method="GET">
+        <div class="form-group" style="margin:0;">
+            <input type="text" name="city" placeholder="Where in Zimbabwe?" value="{{ request.args.get('city', '') }}">
+        </div>
+    </form>
+</div>
+
+<!-- ===== MAIN CONTENT ===== -->
+<main class="main-content">
+    {% block content %}{% endblock %}
+</main>
+
+<!-- ===== FOOTER ===== -->
+<footer class="footer">
+    <div class="footer-inner">
+        <div class="footer-brand">
+            <a href="/" class="nav-logo footer-logo">
+                <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
+                    <path d="M16 2C8.268 2 2 8.268 2 16s6.268 14 14 14 14-6.268 14-14S23.732 2 16 2z" fill="#ff385c"/>
+                    <path d="M16 8c-2.5 0-4.5 2-4.5 4.5 0 4 4.5 9.5 4.5 9.5s4.5-5.5 4.5-9.5C20.5 10 18.5 8 16 8z" fill="white"/>
+                </svg>
+                <span>ZimBnB</span>
+            </a>
+            <p>Your home away from home across Zimbabwe.</p>
+        </div>
+        <div class="footer-links-group">
+            <h4>Explore</h4>
+            <a href="/properties">Browse properties</a>
+            <a href="/properties?province=Harare">Harare</a>
+            <a href="/properties?province=Bulawayo">Bulawayo</a>
+            <a href="/properties?city=Victoria Falls">Victoria Falls</a>
+        </div>
+        <div class="footer-links-group">
+            <h4>Hosting</h4>
+            {% if session.user_id %}
+            <a href="/owner/dashboard">Host dashboard</a>
+            {% else %}
+            <a href="/register">Become a host</a>
+            <a href="/login">Host dashboard</a>
+            {% endif %}
+        </div>
+        <div class="footer-links-group">
+            <h4>Account</h4>
+            {% if session.user_id %}
+            <a href="/logout">Sign out</a>
+            {% else %}
+            <a href="/login">Log in</a>
+            <a href="/register">Sign up</a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="footer-bottom">
+        <span>© 2026 ZimBnB · All rights reserved</span>
+    </div>
+</footer>
+
+<script>
+// ── User dropdown toggle ───────────────────────────────────
+const userMenuBtn  = document.getElementById('userMenuBtn');
+const userDropdown = document.getElementById('userDropdown');
+if (userMenuBtn) {
+    userMenuBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        const open = userDropdown.classList.toggle('open');
+        userMenuBtn.setAttribute('aria-expanded', open);
+    });
+    document.addEventListener('click', function () {
+        userDropdown.classList.remove('open');
+        userMenuBtn.setAttribute('aria-expanded', 'false');
+    });
+}
+
+// ── Mobile search toggle ──────────────────────────────────
+const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+const mobileSearch  = document.getElementById('mobileSearch');
+if (mobileMenuBtn) {
+    mobileMenuBtn.addEventListener('click', function () {
+        mobileSearch.classList.toggle('open');
+    });
+}
+</script>
+<script>lucide.createIcons({ attrs: { 'stroke-width': '1.75' } });</script>
+</body>
+</html>

@@ -1,0 +1,169 @@
+{% extends "base.html" %}
+{% block title %}Owner Dashboard — ZimBnB{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HEADER ===== -->
+<div class="db-header">
+    <div>
+        <p class="db-eyebrow">Property Owner <span class="role-badge role-badge--owner">🏠 Owner</span></p>
+        <h1 class="db-title">Welcome back, {{ session.first_name }}! 🏠</h1>
+        <p class="db-sub">Here's how your properties are performing</p>
+    </div>
+    <div class="db-header-actions">
+        <a href="/owner/properties" class="btn btn-outline">My Properties</a>
+        <a href="/owner/property/create" class="btn btn-primary">+ Add Property</a>
+    </div>
+</div>
+
+<!-- ===== STATS ===== -->
+<div class="db-stats">
+    <div class="db-stat db-stat--pink">
+        <div class="db-stat__icon"><i data-lucide="home"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ stats.total_properties }}</div>
+            <div class="db-stat__lbl">Properties</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--teal">
+        <div class="db-stat__icon"><i data-lucide="dollar-sign"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">${{ stats.total_earnings }}</div>
+            <div class="db-stat__lbl">Total revenue</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--amber">
+        <div class="db-stat__icon"><i data-lucide="star"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">
+                {% if rating.average_rating %}{{ rating.average_rating }}{% else %}—{% endif %}
+            </div>
+            <div class="db-stat__lbl">Avg rating ({{ rating.total_reviews }} reviews)</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--purple">
+        <div class="db-stat__icon"><i data-lucide="calendar"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ stats.total_bookings }}</div>
+            <div class="db-stat__lbl">Total bookings</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ===== REVENUE BY PROPERTY (bar chart) ===== -->
+{% if by_property %}
+<div class="db-section">
+    <div class="db-section__header">
+        <h2>Revenue by property</h2>
+        <a href="/owner/earnings" class="db-section__link">Full report →</a>
+    </div>
+    <div class="revenue-chart">
+        {% for prop in by_property %}
+        {% set bar_pct = ((prop.revenue / max_revenue) * 100) | int %}
+        <div class="rev-row">
+            <a href="/property/{{ prop.property_id }}" class="rev-row__name" title="{{ prop.title }}">
+                {{ prop.title | truncate(30, true, '…') }}
+            </a>
+            <div class="rev-row__bar-wrap">
+                <div class="rev-row__bar" style="width: {{ bar_pct }}%"></div>
+            </div>
+            <div class="rev-row__meta">
+                <span class="rev-row__revenue">${{ prop.revenue | int }}</span>
+                <span class="rev-row__bookings">{{ prop.bookings }} booking{% if prop.bookings != 1 %}s{% endif %}</span>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+
+<!-- ===== TWO COLUMN: Upcoming | Reviews ===== -->
+<div class="db-two-col">
+
+    <!-- Upcoming Bookings -->
+    <div class="db-panel">
+        <div class="db-panel__header">
+            <h2>Upcoming bookings</h2>
+            <a href="/owner/bookings">View all →</a>
+        </div>
+        {% if upcoming %}
+        <ul class="db-booking-list">
+            {% for booking in upcoming[:6] %}
+            <li class="db-booking-row">
+                <div class="db-booking-row__icon"><i data-lucide="calendar"></i></div>
+                <div class="db-booking-row__body">
+                    <div class="db-booking-row__prop">{{ booking.property_title }}</div>
+                    <div class="db-booking-row__dates">
+                        {{ booking.check_in_date | fmt_date }} → {{ booking.check_out_date | fmt_date }}
+                    </div>
+                </div>
+                <span class="db-booking-row__guests">{{ booking.num_guests }} guest{% if booking.num_guests != 1 %}s{% endif %}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="db-panel__empty">
+            <div><i data-lucide="inbox"></i></div>
+            <p>No upcoming bookings</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Reviews -->
+    <div class="db-panel">
+        <div class="db-panel__header">
+            <h2>Recent reviews</h2>
+            <a href="/owner/reviews">View all →</a>
+        </div>
+        {% if reviews %}
+        <ul class="db-review-list">
+            {% for review in reviews %}
+            <li class="db-review-row">
+                <div class="db-review-row__stars">
+                    {% for i in range(review.rating) %}★{% endfor %}{% for i in range(5 - review.rating) %}☆{% endfor %}
+                </div>
+                <p class="db-review-row__text">
+                    "{{ review.comment | truncate(120, true, '…') }}"
+                </p>
+                <span class="db-review-row__date">{{ review.dated_posted_ }}</span>
+            </li>
+            {% endfor %}
+        </ul>
+        {% else %}
+        <div class="db-panel__empty">
+            <div><i data-lucide="star"></i></div>
+            <p>No reviews yet — great stays earn great reviews!</p>
+        </div>
+        {% endif %}
+    </div>
+
+</div>
+
+
+<!-- ===== QUICK LINKS ===== -->
+<div class="db-quick-links">
+    <a href="/owner/properties" class="db-quick-link">
+        <span class="db-quick-link__icon"><i data-lucide="home"></i></span>
+        <span>Manage properties</span>
+    </a>
+    <a href="/owner/bookings" class="db-quick-link">
+        <span class="db-quick-link__icon"><i data-lucide="calendar"></i></span>
+        <span>All bookings</span>
+    </a>
+    <a href="/owner/earnings" class="db-quick-link">
+        <span class="db-quick-link__icon"><i data-lucide="trending-up"></i></span>
+        <span>Earnings report</span>
+    </a>
+    <a href="/owner/reviews" class="db-quick-link">
+        <span class="db-quick-link__icon"><i data-lucide="star"></i></span>
+        <span>Reviews</span>
+    </a>
+</div>
+
+{% endblock %}

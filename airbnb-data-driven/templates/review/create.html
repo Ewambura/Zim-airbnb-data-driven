@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+
+{% block title %}Write a Review - ZimBnB{% endblock %}
+
+{% block content %}
+<div style="max-width:600px; margin:0 auto;">
+    <a href="/guest/dashboard" style="color:#ff385c; text-decoration:none; display:inline-block; margin-bottom:20px;">
+        &larr; Back to dashboard
+    </a>
+
+    <div class="card">
+        <div class="card-body" style="padding:30px;">
+            <h2 style="margin-bottom:5px;">Write a Review</h2>
+            <p style="color:#6b7280; margin-bottom:25px;">
+                Share your experience at {{ property.title or 'this property' }}
+            </p>
+
+            {% if too_early %}
+            <div style="text-align:center; padding:20px;">
+                <div style="font-size:48px; margin-bottom:15px;">🗓️</div>
+                <h3 style="color:#374151;">Stay not completed yet</h3>
+                <p style="color:#6b7280; margin:12px 0;">
+                    You can only leave a review after your check-out date has passed.
+                </p>
+                <a href="/guest/dashboard" class="btn btn-primary" style="margin-top:10px;">Back to Dashboard</a>
+            </div>
+            {% elif msg %}
+            <div class="alert {% if success %}alert-success{% else %}alert-error{% endif %}">
+                {{ msg }}
+            </div>
+            {% endif %}
+
+            {% if not too_early and success %}
+            <div style="text-align:center; padding:20px;">
+                <div style="font-size:48px; margin-bottom:15px;">&#9733;</div>
+                <h3>Thank you for your review!</h3>
+                <p style="color:#6b7280; margin:15px 0;">Your feedback helps other guests.</p>
+                <a href="/guest/dashboard" class="btn btn-primary">Back to Dashboard</a>
+            </div>
+            {% elif not too_early %}
+            <form method="POST">
+                <div class="form-group">
+                    <label>Rating</label>
+                    <div style="display:flex; gap:10px; margin-top:5px;">
+                        {% for i in range(1, 6) %}
+                        <label style="cursor:pointer;">
+                            <input type="radio" name="rating" value="{{ i }}" required style="display:none;">
+                            <span class="star" data-rating="{{ i }}" style="font-size:32px; color:#ddd;">&#9733;</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="comment">Your Review</label>
+                    <textarea name="comment" id="comment" rows="5" placeholder="Tell us about your stay..." required></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary" style="width:100%; padding:15px;">
+                    Submit Review
+                </button>
+            </form>
+
+            <script>
+            const stars = document.querySelectorAll('.star');
+            const radios = document.querySelectorAll('input[name="rating"]');
+
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    const rating = this.dataset.rating;
+                    stars.forEach((s, idx) => {
+                        if (idx < rating) {
+                            s.style.color = '#ffb400';
+                        } else {
+                            s.style.color = '#ddd';
+                        }
+                    });
+                });
+
+                star.addEventListener('mouseenter', function() {
+                    const rating = this.dataset.rating;
+                    stars.forEach((s, idx) => {
+                        if (idx < rating) {
+                            s.style.color = '#ffb400';
+                        } else {
+                            s.style.color = '#ddd';
+                        }
+                    });
+                });
+            });
+
+            document.querySelector('form').addEventListener('mouseleave', function() {
+                const checked = document.querySelector('input[name="rating"]:checked');
+                if (checked) {
+                    const rating = checked.value;
+                    stars.forEach((s, idx) => {
+                        if (idx < rating) {
+                            s.style.color = '#ffb400';
+                        } else {
+                            s.style.color = '#ddd';
+                        }
+                    });
+                } else {
+                    stars.forEach(s => s.style.color = '#ddd');
+                }
+            });
+            </script>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

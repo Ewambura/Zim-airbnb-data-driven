@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}{{ property.title }} - ZimBnB{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/properties.css') }}">
+{% endblock %}
+
+{% block content %}
+<a href="/properties" class="back-link">&larr; Back to properties</a>
+<div class="detail-layout">
+
+    <!-- ===== LEFT COLUMN ===== -->
+    <div class="detail-main">
+
+        <!-- Image Gallery -->
+        <div class="detail-gallery">
+            {% if images %}
+                <img class="gallery-hero" src="{{ images[0].image_url }}" alt="{{ property.title }}">
+                {% if images|length > 1 %}
+                <div class="gallery-thumbs">
+                    {% for img in images[1:5] %}
+                    <img src="{{ img.image_url }}" alt="{{ img.caption or 'Property photo' }}">
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% else %}
+                {% set fallbacks = {
+                    'house':     'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=900&h=600&fit=crop&q=80',
+                    'apartment': 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=900&h=600&fit=crop&q=80',
+                    'villa':     'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=900&h=600&fit=crop&q=80',
+                    'cabin':     'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=900&h=600&fit=crop&q=80',
+                    'studio':    'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=900&h=600&fit=crop&q=80',
+                    'farm':      'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=900&h=600&fit=crop&q=80',
+                    'room':      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=900&h=600&fit=crop&q=80'
+                } %}
+                <img class="gallery-hero gallery-hero--full"
+                     src="{{ fallbacks.get(property.property_type | lower, 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=900&h=600&fit=crop&q=80') }}"
+                     alt="{{ property.title }}">
+            {% endif %}
+        </div>
+
+        <!-- Title & Availability Badge -->
+        <div class="detail-header">
+            <div>
+                <span class="prop-type-badge">{{ property.property_type | capitalize }}</span>
+                <h1 class="detail-title">{{ property.title }}</h1>
+                <p class="detail-location">
+                    📍 {{ property.city }}{% if property.province %}, {{ property.province }}{% endif %}
+                    {% if property.address %} · {{ property.address }}{% endif %}
+                </p>
+            </div>
+            <div>
+                {% if property.is_available == 'YES' or property.is_available == None %}
+                <span class="avail-badge avail-badge--yes">● Available</span>
+                {% else %}
+                <span class="avail-badge avail-badge--no">● Not Available</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Key Stats -->
+        <div class="detail-stats">
+            <div class="stat-item">
+                <span class="stat-icon"><i data-lucide="bed"></i></span>
+                <span class="stat-val">{{ property.num_bedrooms }}</span>
+                <span class="stat-lbl">bedroom{% if property.num_bedrooms != 1 %}s{% endif %}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon"><i data-lucide="bath"></i></span>
+                <span class="stat-val">{{ property.num_bathrooms }}</span>
+                <span class="stat-lbl">bathroom{% if property.num_bathrooms != 1 %}s{% endif %}</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon"><i data-lucide="users"></i></span>
+                <span class="stat-val">{{ property.max_guests }}</span>
+                <span class="stat-lbl">guest{% if property.max_guests != 1 %}s{% endif %} max</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon"><i data-lucide="clock"></i></span>
+                <span class="stat-val">{{ property.check_in_time or '3PM' }}</span>
+                <span class="stat-lbl">check-in</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-icon"><i data-lucide="clock"></i></span>
+                <span class="stat-val">{{ property.check_out_time or '11AM' }}</span>
+                <span class="stat-lbl">check-out</span>
+            </div>
+        </div>
+
+        <!-- Description -->
+        {% if property.description %}
+        <div class="detail-section">
+            <h3>About this place</h3>
+            <p class="detail-description">{{ property.description }}</p>
+        </div>
+        {% endif %}
+
+        <!-- All Photos -->
+        {% if images and images|length > 1 %}
+        <div class="detail-section">
+            <h3>All photos</h3>
+            <div class="photo-grid">
+                {% for img in images %}
+                <img src="{{ img.image_url }}" alt="{{ img.caption or 'Property photo' }}">
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Reviews -->
+        <div class="detail-section">
+            <h3>
+                Reviews
+                {% if reviews %}
+                <span class="review-count">({{ reviews|length }})</span>
+                {% endif %}
+            </h3>
+            {% if reviews %}
+            <div class="reviews-list">
+                {% for review in reviews %}
+                <div class="review-card">
+                    <div class="review-top">
+                        <div class="review-stars">
+                            {% for i in range(review.rating) %}★{% endfor %}{% for i in range(5 - review.rating) %}☆{% endfor %}
+                        </div>
+                        <span class="review-date">{{ review.dated_posted_ }}</span>
+                    </div>
+                    <p class="review-comment">{{ review.comment }}</p>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="no-content">No reviews yet — be the first to stay here!</p>
+            {% endif %}
+        </div>
+
+    </div><!-- end detail-main -->
+
+
+    <!-- ===== RIGHT COLUMN — BOOKING PANEL ===== -->
+    <div class="booking-panel-wrap">
+        <div class="booking-panel" id="bookingPanel">
+
+        {% if session.role == 'admin' %}
+        <!-- Admin view: no booking allowed -->
+        <div class="avail-notice" style="background:#f3f4f6; border:1px solid #e5e7eb; border-radius:12px; padding:20px; text-align:center;">
+            <p style="color:#6b7280; font-size:14px; margin:0;">
+                <strong style="display:block; margin-bottom:6px; color:#374151;">Admin View</strong>
+                Admins cannot make bookings. Use the admin panel to manage this property.
+            </p>
+            <a href="/admin/properties" class="btn btn-outline" style="margin-top:14px; display:inline-block;">Back to properties</a>
+        </div>
+        {% else %}
+
+            <div class="booking-panel__price">
+                <span class="price-amount">${{ property.price_per_night }}</span>
+                <span class="price-unit"> / night</span>
+            </div>
+
+            {% if property.is_available != 'YES' and property.is_available is not none %}
+            <!-- Property is not available -->
+            <div class="avail-notice avail-notice--blocked">
+                <span class="avail-notice__icon"><i data-lucide="ban"></i></span>
+                <div>
+                    <strong>Not Available</strong>
+                    <p>The owner has temporarily closed this property for new bookings.</p>
+                </div>
+            </div>
+
+            {% else %}
+            <!-- Property is available — show booking form -->
+
+            {% if property.available_from or property.available_to %}
+            <p class="avail-window">
+                <i data-lucide="calendar" style="width:14px;height:14px;vertical-align:middle;margin-right:4px;"></i>Available:
+                {% if property.available_from %}from <strong>{{ property.available_from }}</strong>{% endif %}
+                {% if property.available_to %}to <strong>{{ property.available_to }}</strong>{% endif %}
+            </p>
+            {% endif %}
+
+            <form method="GET" action="/booking/create/{{ property.property_id }}" id="bookingForm">
+
+            <div class="date-row">
+                <div class="form-group">
+                    <label for="ci">Check-in</label>
+                    <input type="date" id="ci" name="check_in" required>
+                </div>
+                <div class="form-group">
+                    <label for="co">Check-out</label>
+                    <input type="date" id="co" name="check_out" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="ng">Guests</label>
+                <select id="ng" name="num_guests">
+                    {% for i in range(1, property.max_guests + 1) %}
+                    <option value="{{ i }}">{{ i }} guest{% if i > 1 %}s{% endif %}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Availability / Error message -->
+            <div id="availMsg" class="avail-notice" style="display:none;"></div>
+
+            <!-- Price Breakdown -->
+            <div id="priceBreakdown" class="price-breakdown" style="display:none;">
+                <div class="breakdown-row">
+                    <span id="nightsLabel">${{ property.price_per_night }} × ? nights</span>
+                    <span id="subtotalVal">—</span>
+                </div>
+                <div class="breakdown-row">
+                    <span>ZimBnB service fee</span>
+                    <span id="feeVal">—</span>
+                </div>
+                <div class="breakdown-row breakdown-row--total">
+                    <span>Total</span>
+                    <span id="totalVal">—</span>
+                </div>
+            </div>
+
+            {% if session.user_id %}
+            <button type="submit" id="reserveBtn" class="btn btn-primary btn-block">
+                Reserve
+            </button>
+            <p class="no-charge-note">You won't be charged yet</p>
+            {% else %}
+            <a href="/login" class="btn btn-primary btn-block">Login to Reserve</a>
+            {% endif %}
+
+            </form>
+
+            {% endif %}<!-- end is_available check -->
+        {% endif %}<!-- end admin check -->
+        </div>
+    </div>
+
+</div><!-- end detail-layout -->
+
+<!-- ===== STICKY BOTTOM BAR (appears on scroll) ===== -->
+<div class="sticky-booking-bar" id="stickyBar">
+    <div class="sticky-bar__inner">
+        <div class="sticky-bar__price">
+            <span class="sticky-bar__amount">${{ property.price_per_night }}</span>
+            <span class="sticky-bar__unit"> / night</span>
+        </div>
+        {% if session.role == 'admin' %}
+            <span class="sticky-bar__unavail">Admin View</span>
+        {% elif property.is_available != 'YES' and property.is_available is not none %}
+            <span class="sticky-bar__unavail">Not Available</span>
+        {% elif session.user_id %}
+            <a href="#bookingForm" class="btn btn-primary sticky-bar__btn">Reserve — scroll up</a>
+        {% else %}
+            <a href="/login" class="btn btn-primary sticky-bar__btn">Log in to Reserve</a>
+        {% endif %}
+    </div>
+</div>
+
+
+
+<script>
+(function () {
+    const pricePerNight  = {{ property.price_per_night }};
+    const SERVICE_FEE_RATE = 0.12;
+
+    const ciInput        = document.getElementById('ci');
+    const coInput        = document.getElementById('co');
+    const ngSelect       = document.getElementById('ng');
+    const availMsg       = document.getElementById('availMsg');
+    const priceBreakdown = document.getElementById('priceBreakdown');
+    const nightsLabel    = document.getElementById('nightsLabel');
+    const subtotalVal    = document.getElementById('subtotalVal');
+    const feeVal         = document.getElementById('feeVal');
+    const totalVal       = document.getElementById('totalVal');
+
+    if (!ciInput) return;  // panel not shown (property unavailable)
+
+    // Set minimum date to today
+    const today = new Date().toISOString().split('T')[0];
+    ciInput.min = today;
+    coInput.min = today;
+
+    // ── Price breakdown (display only — no button toggling) ─
+    function update() {
+        const ci = ciInput.value;
+        const co = coInput.value;
+
+        availMsg.style.display    = 'none';
+        priceBreakdown.style.display = 'none';
+
+        if (!ci || !co) return;
+
+        const nights = Math.round((new Date(co) - new Date(ci)) / 86400000);
+
+        if (nights <= 0) {
+            availMsg.className   = 'avail-notice avail-notice--error';
+            availMsg.textContent = '⚠ Check-out must be after check-in';
+            availMsg.style.display = 'flex';
+            return;
+        }
+
+        const subtotal = pricePerNight * nights;
+        const fee      = Math.round(subtotal * SERVICE_FEE_RATE);
+        const total    = subtotal + fee;
+
+        nightsLabel.textContent = '$' + pricePerNight + ' × ' + nights + ' night' + (nights > 1 ? 's' : '');
+        subtotalVal.textContent = '$' + subtotal;
+        feeVal.textContent      = '$' + fee;
+        totalVal.textContent    = '$' + total;
+        priceBreakdown.style.display = 'block';
+    }
+
+    ciInput.addEventListener('change', function () {
+        if (ciInput.value) coInput.min = ciInput.value;
+        update();
+    });
+    coInput.addEventListener('change', update);
+    ciInput.addEventListener('input', function () {
+        if (ciInput.value) coInput.min = ciInput.value;
+        update();
+    });
+    coInput.addEventListener('input', update);
+}());
+
+// ── Sticky bottom bar: show when booking panel scrolls out of view ──
+(function () {
+    var panel    = document.getElementById('bookingPanel');
+    var stickyBar = document.getElementById('stickyBar');
+    if (!panel || !stickyBar) return;
+
+    var observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+                stickyBar.classList.remove('visible');
+            } else {
+                stickyBar.classList.add('visible');
+            }
+        });
+    }, { threshold: 0, rootMargin: '0px' });
+
+    observer.observe(panel);
+}());
+</script>
+{% endblock %}

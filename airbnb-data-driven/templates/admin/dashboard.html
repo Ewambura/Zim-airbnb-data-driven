@@ -1,0 +1,280 @@
+{% extends "base.html" %}
+{% block title %}Admin Dashboard — ZimBnB{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HEADER ===== -->
+<div class="db-header">
+    <div>
+        <p class="db-eyebrow">Platform Administration <span class="role-badge role-badge--admin">🛡️ Admin</span></p>
+        <h1 class="db-title">Admin Dashboard 🛡️</h1>
+        <p class="db-sub">Real-time platform health and activity</p>
+    </div>
+    <div class="db-header-actions">
+        <a href="/admin/users"      class="btn btn-outline">Users</a>
+        <a href="/admin/properties" class="btn btn-outline">Properties</a>
+        <a href="/admin/bookings"   class="btn btn-outline">Bookings</a>
+        <a href="/admin/reviews"    class="btn btn-primary">Reviews</a>
+    </div>
+</div>
+
+
+<!-- ===== QUICK MANAGEMENT LINKS ===== -->
+<div class="db-quick-links" style="margin-bottom:28px;">
+    <a href="/admin/users" class="db-quick-link">
+        <span class="db-quick-link__icon"><i data-lucide="users"></i></span>
+        <span>Manage users</span>
+    </a>
+    <a href="/admin/properties" class="db-quick-link">
+        <span class="db-quick-link__icon"><i data-lucide="building-2"></i></span>
+        <span>All properties</span>
+    </a>
+    <a href="/admin/bookings" class="db-quick-link">
+        <span class="db-quick-link__icon"><i data-lucide="calendar"></i></span>
+        <span>All bookings</span>
+    </a>
+    <a href="/admin/reviews" class="db-quick-link">
+        <span class="db-quick-link__icon"><i data-lucide="star"></i></span>
+        <span>Moderate reviews</span>
+    </a>
+</div>
+
+
+<!-- ===== STATS ===== -->
+<div class="db-stats db-stats--6">
+    <div class="db-stat db-stat--pink">
+        <div class="db-stat__icon"><i data-lucide="users"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ stats.total_users }}</div>
+            <div class="db-stat__lbl">Total users</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--teal">
+        <div class="db-stat__icon"><i data-lucide="user"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ stats.total_guests }}</div>
+            <div class="db-stat__lbl">Guests</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--purple">
+        <div class="db-stat__icon"><i data-lucide="home"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ stats.total_owners }}</div>
+            <div class="db-stat__lbl">Hosts</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--amber">
+        <div class="db-stat__icon"><i data-lucide="building-2"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ stats.total_properties }}</div>
+            <div class="db-stat__lbl">Properties</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--green">
+        <div class="db-stat__icon"><i data-lucide="calendar"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ stats.total_bookings }}</div>
+            <div class="db-stat__lbl">Bookings</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--indigo">
+        <div class="db-stat__icon"><i data-lucide="star"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">
+                {% if stats.platform_avg_rating %}{{ stats.platform_avg_rating }}{% else %}—{% endif %}
+            </div>
+            <div class="db-stat__lbl">Platform rating ({{ stats.total_reviews }} reviews)</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ===== BOOKINGS LINE CHART ===== -->
+<div class="db-panel" style="margin-bottom:28px;">
+    <div class="db-panel__header">
+        <h2>Bookings over time</h2>
+    </div>
+    {% if chart_labels %}
+    <div style="position:relative; height:260px; padding:8px 4px 4px;">
+        <canvas id="bookingsChart"></canvas>
+    </div>
+    {% else %}
+    <div class="db-panel__empty"><div><i data-lucide="trending-up"></i></div><p>Not enough data yet</p></div>
+    {% endif %}
+</div>
+
+
+<!-- ===== TWO COLUMN: Top Properties | Top Owners ===== -->
+<div class="db-two-col">
+
+    <!-- Top Properties -->
+    <div class="db-panel">
+        <div class="db-panel__header">
+            <h2>Top properties</h2>
+            <a href="/admin/properties">View all →</a>
+        </div>
+        {% if top_properties %}
+        <table class="db-table">
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Bookings</th>
+                    <th>Rating</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prop in top_properties %}
+                <tr>
+                    <td>
+                        <a href="/property/{{ prop.property_id }}" class="db-table__link">
+                            {{ prop.title | truncate(28, true, '…') }}
+                        </a>
+                        <div style="font-size:12px; color:#9ca3af;">{{ prop.city }}</div>
+                    </td>
+                    <td>
+                        <span class="db-badge db-badge--blue">{{ prop.booking_count }}</span>
+                    </td>
+                    <td>
+                        {% if prop.avg_rating %}
+                        <span style="color:#f59e0b; font-weight:600;">
+                            ★ {{ "%.1f" | format(prop.avg_rating | float) }}
+                        </span>
+                        {% else %}
+                        <span style="color:#9ca3af;">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="db-panel__empty"><div><i data-lucide="bar-chart-2"></i></div><p>No data yet</p></div>
+        {% endif %}
+    </div>
+
+    <!-- Top Owners -->
+    <div class="db-panel">
+        <div class="db-panel__header">
+            <h2>Top hosts</h2>
+            <a href="/admin/users?role=owner">View all →</a>
+        </div>
+        {% if top_owners %}
+        <table class="db-table">
+            <thead>
+                <tr>
+                    <th>Host</th>
+                    <th>Properties</th>
+                    <th>Bookings</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for owner in top_owners %}
+                <tr>
+                    <td>
+                        <div class="db-table__user">
+                            <div class="db-table__avatar">
+                                {{ (owner.business_name_ or 'O')[0] | upper }}
+                            </div>
+                            <span>{{ owner.business_name_ or ('Host #' + owner.owner_id|string) }}</span>
+                        </div>
+                    </td>
+                    <td><span class="db-badge db-badge--gray">{{ owner.property_count }}</span></td>
+                    <td><span class="db-badge db-badge--blue">{{ owner.total_bookings }}</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="db-panel__empty"><div><i data-lucide="home"></i></div><p>No hosts yet</p></div>
+        {% endif %}
+    </div>
+
+</div>
+
+
+<!-- ===== RECENT ACTIVITY ===== -->
+<div class="db-panel" style="margin-top:28px;">
+    <div class="db-panel__header">
+        <h2>Recent activity</h2>
+        <a href="/admin/bookings">View all bookings →</a>
+    </div>
+    {% if recent_activity %}
+    <ul class="db-activity-list">
+        {% for item in recent_activity %}
+        <li class="db-activity-row">
+            <div class="db-activity-row__icon db-activity-row__icon--booking"><i data-lucide="calendar"></i></div>
+            <div class="db-activity-row__body">
+                <span class="db-activity-row__action">New booking</span>
+                <span class="db-activity-row__detail">{{ item.details }}</span>
+            </div>
+            <span class="db-activity-row__date">{{ item.date | fmt_date }}</span>
+        </li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <div class="db-panel__empty"><div><i data-lucide="clipboard-list"></i></div><p>No recent activity</p></div>
+    {% endif %}
+</div>
+
+
+{% if chart_labels %}
+<script>
+(function () {
+    const labels = {{ chart_labels | tojson }};
+    const counts = {{ chart_counts | tojson }};
+
+    new Chart(document.getElementById('bookingsChart'), {
+        type: 'line',
+        data: {
+            labels: labels,
+            datasets: [{
+                label: 'Bookings',
+                data: counts,
+                fill: true,
+                tension: 0.4,
+                borderColor: '#ff385c',
+                backgroundColor: 'rgba(255,56,92,0.10)',
+                pointBackgroundColor: '#ff385c',
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                borderWidth: 2.5
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` ${ctx.parsed.y} booking${ctx.parsed.y !== 1 ? 's' : ''}`
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: { font: { size: 12 } }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(0,0,0,0.05)' },
+                    ticks: {
+                        stepSize: 1,
+                        precision: 0,
+                        font: { size: 12 }
+                    }
+                }
+            }
+        }
+    });
+})();
+</script>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+{% block title %}My Trips — ZimBnB{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HEADER ===== -->
+<div class="db-header">
+    <div>
+        <p class="db-eyebrow">Guest Dashboard <span class="role-badge role-badge--guest">✈️ Guest</span></p>
+        <h1 class="db-title">Welcome back, {{ session.first_name }}! 👋</h1>
+        <p class="db-sub">Here's your travel snapshot</p>
+    </div>
+    <a href="/properties" class="btn btn-primary db-cta">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+        </svg>
+        Find a place
+    </a>
+</div>
+
+<!-- ===== STATS ===== -->
+<div class="db-stats">
+    <div class="db-stat db-stat--pink">
+        <div class="db-stat__icon"><i data-lucide="plane"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ stats.total_bookings }}</div>
+            <div class="db-stat__lbl">Total trips</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--teal">
+        <div class="db-stat__icon"><i data-lucide="moon"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ stats.total_nights }}</div>
+            <div class="db-stat__lbl">Nights stayed</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--purple">
+        <div class="db-stat__icon"><i data-lucide="dollar-sign"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">${{ stats.total_spent }}</div>
+            <div class="db-stat__lbl">Total spent</div>
+        </div>
+    </div>
+    <div class="db-stat db-stat--amber">
+        <div class="db-stat__icon"><i data-lucide="calendar"></i></div>
+        <div class="db-stat__body">
+            <div class="db-stat__val">{{ upcoming|length }}</div>
+            <div class="db-stat__lbl">Upcoming stays</div>
+        </div>
+    </div>
+</div>
+
+
+<!-- ===== NEXT TRIP HERO ===== -->
+{% if upcoming %}
+{% set next = upcoming[0] %}
+{% set days = next.check_in_date | days_until %}
+<div class="next-trip-card">
+    <div class="next-trip-card__badge">
+        {% if days == 0 %}
+        🎉 Your trip starts today!
+        {% elif days == 1 %}
+        ⏳ Tomorrow!
+        {% elif days > 0 %}
+        ⏳ In {{ days }} day{% if days != 1 %}s{% endif %}
+        {% else %}
+        📍 In progress
+        {% endif %}
+    </div>
+    <div class="next-trip-card__body">
+        <div class="next-trip-card__info">
+            <p class="next-trip-card__eyebrow">Next trip</p>
+            <h2 class="next-trip-card__title">
+                <a href="/property/{{ next.property_id }}">{{ next.title }}</a>
+            </h2>
+            <p class="next-trip-card__location">
+                📍 {{ next.city }}{% if next.address %} · {{ next.address }}{% endif %}
+            </p>
+            <div class="next-trip-card__meta">
+                <span>📅 {{ next.check_in_date | fmt_date }} → {{ next.check_out_date | fmt_date }}</span>
+                <span>🌙 {{ next.nights }} night{% if next.nights != 1 %}s{% endif %}</span>
+                <span>👥 {{ next.num_guests }} guest{% if next.num_guests != 1 %}s{% endif %}</span>
+                <span class="next-trip-card__cost">${{ next.total_cost | int }}</span>
+            </div>
+        </div>
+        <div class="next-trip-card__actions">
+            <a href="/property/{{ next.property_id }}" class="btn" style="background:#ffffff; color:#111827; font-weight:600;">View property</a>
+            <form action="/booking/cancel/{{ next.Booking_id }}" method="POST"
+                  onsubmit="return confirm('Are you sure you want to cancel this booking?');">
+                <button type="submit" class="btn btn-danger">Cancel</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+
+<!-- ===== UPCOMING STAYS ===== -->
+<div class="db-section">
+    <div class="db-section__header">
+        <h2>Upcoming stays</h2>
+        <span class="db-section__count">{{ upcoming|length }}</span>
+    </div>
+
+    {% if upcoming %}
+    <div class="trip-list">
+        {% for booking in upcoming %}
+        <div class="trip-card trip-card--upcoming">
+            {% set type_imgs = {'house':'photo-1564013799919-ab600027ffc6','apartment':'photo-1522708323590-d24dbb6b0267','villa':'photo-1613977257363-707ba9348227','cabin':'photo-1449824913935-59a10b8d2000','studio':'photo-1540518614846-7eded433c457','farm':'photo-1500076656116-558758c991c1','room':'photo-1631049307264-da0ec9d70304'} %}
+            <div class="trip-card__left">
+                <img src="https://images.unsplash.com/{{ type_imgs.get((booking.property_type or 'house')|lower, 'photo-1564013799919-ab600027ffc6') }}?w=200&h=160&fit=crop&q=80"
+                     alt="{{ booking.title }}" class="trip-card__img">
+            </div>
+            <div class="trip-card__body">
+                <h3 class="trip-card__title">
+                    <a href="/property/{{ booking.property_id }}">{{ booking.title }}</a>
+                </h3>
+                <p class="trip-card__location">📍 {{ booking.city }}</p>
+                <div class="trip-card__details">
+                    <span>📅 {{ booking.check_in_date | fmt_date }} – {{ booking.check_out_date | fmt_date }}</span>
+                    <span>🌙 {{ booking.nights }} night{% if booking.nights != 1 %}s{% endif %}</span>
+                    <span>👥 {{ booking.num_guests }} guest{% if booking.num_guests != 1 %}s{% endif %}</span>
+                </div>
+            </div>
+            <div class="trip-card__right">
+                <div class="trip-card__price">${{ booking.total_cost | int }}</div>
+                <div class="trip-card__price-note">total</div>
+                <div class="trip-card__actions">
+                    <a href="/property/{{ booking.property_id }}" class="btn btn-secondary btn-sm">View property</a>
+                    <form action="/booking/cancel/{{ booking.Booking_id }}" method="POST"
+                          onsubmit="return confirm('Cancel this booking?');">
+                        <button type="submit" class="btn btn-danger btn-sm">Cancel</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="db-empty">
+        <div class="db-empty__icon"><i data-lucide="globe"></i></div>
+        <h3>No upcoming stays</h3>
+        <p>Zimbabwe is waiting for you — explore unique places to stay.</p>
+        <a href="/properties" class="btn btn-primary" style="margin-top:16px;">Browse properties</a>
+    </div>
+    {% endif %}
+</div>
+
+
+<!-- ===== PAST STAYS ===== -->
+<div class="db-section">
+    <div class="db-section__header">
+        <h2>Past stays</h2>
+        <span class="db-section__count">{{ history|length }}</span>
+    </div>
+
+    {% if history %}
+    <div class="trip-list">
+        {% for booking in history %}
+        <div class="trip-card trip-card--past">
+            {% set type_imgs = {'house':'photo-1564013799919-ab600027ffc6','apartment':'photo-1522708323590-d24dbb6b0267','villa':'photo-1613977257363-707ba9348227','cabin':'photo-1449824913935-59a10b8d2000','studio':'photo-1540518614846-7eded433c457','farm':'photo-1500076656116-558758c991c1','room':'photo-1631049307264-da0ec9d70304'} %}
+            <div class="trip-card__left">
+                <img src="https://images.unsplash.com/{{ type_imgs.get((booking.property_type or 'house')|lower, 'photo-1564013799919-ab600027ffc6') }}?w=200&h=160&fit=crop&q=80"
+                     alt="{{ booking.title }}" class="trip-card__img">
+            </div>
+            <div class="trip-card__body">
+                <h3 class="trip-card__title">
+                    <a href="/property/{{ booking.property_id }}">{{ booking.title }}</a>
+                </h3>
+                <p class="trip-card__location">📍 {{ booking.city }}</p>
+                <div class="trip-card__details">
+                    <span>📅 {{ booking.check_in_date | fmt_date }} – {{ booking.check_out_date | fmt_date }}</span>
+                    <span>🌙 {{ booking.nights }} night{% if booking.nights != 1 %}s{% endif %}</span>
+                    <span>👥 {{ booking.num_guests }} guest{% if booking.num_guests != 1 %}s{% endif %}</span>
+                </div>
+            </div>
+            <div class="trip-card__right">
+                <div class="trip-card__price">${{ booking.total_cost | int }}</div>
+                <div class="trip-card__price-note">spent</div>
+                <div class="trip-card__actions">
+                    <a href="/review/create/{{ booking.Booking_id }}" class="btn btn-primary btn-sm">
+                        ⭐ Review
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="db-empty">
+        <div class="db-empty__icon"><i data-lucide="star"></i></div>
+        <h3>No past stays yet</h3>
+        <p>Your travel history will appear here once you've completed a trip.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

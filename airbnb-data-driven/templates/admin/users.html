@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - ZimBnB Admin{% endblock %}
+
+{% block content %}
+<a href="/admin/dashboard" class="back-link">&larr; Back to Admin Dashboard</a>
+<h1 style="margin-bottom:30px;">Manage Users</h1>
+
+<!-- Search and Filter -->
+<div class="card" style="margin-bottom:30px;">
+    <div class="card-body" style="padding:20px;">
+        <form action="/admin/users" method="GET" style="display:flex; gap:15px; flex-wrap:wrap; align-items:flex-end;">
+            <div class="form-group" style="margin:0; flex:1; min-width:200px;">
+                <label for="q">Search</label>
+                <input type="text" name="q" id="q" placeholder="Search by name or email..." value="{{ search_query or '' }}">
+            </div>
+            <div class="form-group" style="margin:0;">
+                <label for="role">Role</label>
+                <select name="role" id="role" style="min-width:150px;">
+                    <option value="">All Roles</option>
+                    <option value="guest" {% if role_filter == 'guest' %}selected{% endif %}>Guests</option>
+                    <option value="owner" {% if role_filter == 'owner' %}selected{% endif %}>Owners</option>
+                    <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admins</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">Filter</button>
+            {% if search_query or role_filter %}
+            <a href="/admin/users" class="btn btn-secondary">Clear</a>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- Users Table -->
+<div class="section">
+    {% if users %}
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                <tr>
+                    <td>{{ user.user_id }}</td>
+                    <td>{{ user.first_name_ }} {{ user.last_name_ }}</td>
+                    <td>{{ user.email }}</td>
+                    <td>
+                        {% if user.role == 'admin' %}
+                        <span style="background:#7c3aed; color:white; padding:3px 8px; border-radius:4px; font-size:12px;">Admin</span>
+                        {% elif user.role == 'owner' %}
+                        <span style="background:#2563eb; color:white; padding:3px 8px; border-radius:4px; font-size:12px;">Owner</span>
+                        {% else %}
+                        <span style="background:#6b7280; color:white; padding:3px 8px; border-radius:4px; font-size:12px;">Guest</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="/admin/user/{{ user.user_id }}/reset-password" class="btn btn-secondary" style="padding:5px 10px; font-size:12px;">Reset Password</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p style="margin-top:15px; color:#6b7280;">Showing {{ users|length }} user(s)</p>
+    {% else %}
+    <div class="card">
+        <div class="card-body" style="text-align:center; padding:50px;">
+            <h3 style="color:#6b7280;">No users found</h3>
+            <p style="color:#9ca3af; margin-top:10px;">Try adjusting your search or filter criteria.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

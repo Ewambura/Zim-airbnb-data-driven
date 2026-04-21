@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Reviews - ZimBnB Admin{% endblock %}
+
+{% block content %}
+<a href="/admin/dashboard" class="back-link">&larr; Back to Admin Dashboard</a>
+<h1 style="margin-bottom:30px;">All Reviews</h1>
+
+<!-- Reviews List -->
+<div class="section">
+    {% if reviews %}
+    <div style="display:grid; gap:20px;">
+        {% for review in reviews %}
+        <div class="card">
+            <div class="card-body" style="padding:20px;">
+                <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:15px;">
+                    <div>
+                        <a href="/property/{{ review.property_id }}" style="color:#ff385c; text-decoration:none; font-weight:600; font-size:18px;">
+                            {{ review.title or 'Property #' + review.property_id|string }}
+                        </a>
+                        <p style="color:#6b7280; margin-top:5px;">
+                            By: {{ review.guest_name or 'Guest #' + review.guest_id|string }}
+                        </p>
+                    </div>
+                    <div style="text-align:right;">
+                        <div style="color:#ffb400; font-size:20px;">
+                            {% for i in range(review.rating|int) %}&#9733;{% endfor %}{% for i in range(5 - review.rating|int) %}<span style="color:#e5e7eb;">&#9733;</span>{% endfor %}
+                        </div>
+                        <p style="color:#9ca3af; font-size:13px; margin-top:5px;">{{ review.dated_posted_ }}</p>
+                    </div>
+                </div>
+                <p style="color:#374151; line-height:1.6;">{{ review.comment }}</p>
+                <div style="margin-top:15px; padding-top:15px; border-top:1px solid #e5e7eb; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:#9ca3af; font-size:13px;">Review ID: {{ review.review_id }}</span>
+                    <form action="/admin/review/{{ review.review_id }}/delete" method="POST" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete this review?');">
+                        <button type="submit" class="btn" style="padding:5px 10px; font-size:12px; background:#dc2626; color:white;">Delete Review</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    <p style="margin-top:20px; color:#6b7280;">Showing {{ reviews|length }} review(s)</p>
+    {% else %}
+    <div class="card">
+        <div class="card-body" style="text-align:center; padding:50px;">
+            <h3 style="color:#6b7280;">No reviews found</h3>
+            <p style="color:#9ca3af; margin-top:10px;">No reviews have been submitted yet.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

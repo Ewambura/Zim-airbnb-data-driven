@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+
+{% block title %}Bookings - ZimBnB{% endblock %}
+
+{% block content %}
+<a href="/owner/dashboard" class="back-link">&larr; Back to Dashboard</a>
+<h1 style="margin-bottom:30px;">Bookings for My Properties</h1>
+
+{% if bookings %}
+<div class="card">
+    <table>
+        <thead>
+            <tr>
+                <th>Property</th>
+                <th>Check-in</th>
+                <th>Check-out</th>
+                <th>Guests</th>
+                <th>Booking ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for booking in bookings %}
+            <tr>
+                <td>
+                    <a href="/property/{{ booking.property_id }}" style="color:#ff385c; text-decoration:none;">
+                        {{ booking.property_title or 'Property #' + booking.property_id|string }}
+                    </a>
+                </td>
+                <td>{{ booking.check_in_date }}</td>
+                <td>{{ booking.check_out_date }}</td>
+                <td>{{ booking.num_guests }}</td>
+                <td style="color:#6b7280;">#{{ booking.Booking_id }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="card">
+    <div class="card-body" style="text-align:center; padding:50px;">
+        <h3 style="color:#6b7280;">No bookings yet</h3>
+        <p style="color:#9ca3af; margin-top:10px;">When guests book your properties, they'll appear here.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

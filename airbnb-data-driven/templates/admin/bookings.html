@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}All Bookings - ZimBnB Admin{% endblock %}
+
+{% block content %}
+<a href="/admin/dashboard" class="back-link">&larr; Back to Admin Dashboard</a>
+<h1 style="margin-bottom:30px;">All Bookings</h1>
+
+<!-- Bookings Table -->
+<div class="section">
+    {% if bookings %}
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Property</th>
+                    <th>Guest</th>
+                    <th>Check-in</th>
+                    <th>Check-out</th>
+                    <th>Guests</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in bookings %}
+                <tr>
+                    <td>{{ booking.Booking_id }}</td>
+                    <td>
+                        <a href="/property/{{ booking.property_id }}" style="color:#ff385c; text-decoration:none;">
+                            {{ booking.title or 'Property #' + booking.property_id|string }}
+                        </a>
+                    </td>
+                    <td>
+                        {% if booking.guest_name %}
+                        {{ booking.guest_name }}
+                        {% else %}
+                        Guest #{{ booking.guest_id }}
+                        {% endif %}
+                    </td>
+                    <td>{{ booking.check_in_date }}</td>
+                    <td>{{ booking.check_out_date }}</td>
+                    <td>{{ booking.num_guests }}</td>
+                    <td>
+                        {% if booking.status_ == 'confirmed' %}
+                        <span style="background:#059669; color:white; padding:3px 8px; border-radius:4px; font-size:12px;">Confirmed</span>
+                        {% elif booking.status_ == 'cancelled' %}
+                        <span style="background:#dc2626; color:white; padding:3px 8px; border-radius:4px; font-size:12px;">Cancelled</span>
+                        {% elif booking.status_ == 'completed' %}
+                        <span style="background:#6b7280; color:white; padding:3px 8px; border-radius:4px; font-size:12px;">Completed</span>
+                        {% else %}
+                        <span style="background:#f59e0b; color:white; padding:3px 8px; border-radius:4px; font-size:12px;">{{ booking.status_ or 'Pending' }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p style="margin-top:15px; color:#6b7280;">Showing {{ bookings|length }} booking(s)</p>
+    {% else %}
+    <div class="card">
+        <div class="card-body" style="text-align:center; padding:50px;">
+            <h3 style="color:#6b7280;">No bookings found</h3>
+            <p style="color:#9ca3af; margin-top:10px;">No bookings have been made yet.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

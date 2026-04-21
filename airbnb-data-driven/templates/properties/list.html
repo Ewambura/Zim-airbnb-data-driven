@@ -1,0 +1,198 @@
+{% extends "base.html" %}
+
+{% block title %}Browse Properties — ZimBnB{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/properties.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== FILTER BAR ===== -->
+<div class="filter-bar">
+
+    <!-- Type pills -->
+    <div class="filter-pills">
+        {% set current_type = request.args.get('property_type', '') %}
+        <a href="/properties?{{ update_query(property_type=None) }}"
+           class="filter-pill {% if not current_type %}filter-pill--active{% endif %}">
+            🏡 All
+        </a>
+        {% for type_val, type_label, type_icon in [
+            ('house',     'Houses',     '🏠'),
+            ('apartment', 'Apartments', '🏢'),
+            ('villa',     'Villas',     '🏰'),
+            ('cabin',     'Cabins',     '🌿')
+        ] %}
+        <a href="/properties?{{ update_query(property_type=type_val) }}"
+           class="filter-pill {% if current_type == type_val %}filter-pill--active{% endif %}">
+            {{ type_icon }} {{ type_label }}
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Advanced filters toggle -->
+    <button class="filter-toggle-btn" id="filterToggle" type="button">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>
+        </svg>
+        Filters
+        {% if request.args.get('province') or request.args.get('min_price') or request.args.get('max_price') or request.args.get('min_bedrooms') %}
+        <span class="filter-dot"></span>
+        {% endif %}
+    </button>
+</div>
+
+<!-- ===== ADVANCED FILTERS PANEL ===== -->
+<div class="filter-panel" id="filterPanel">
+    <form method="GET" action="/properties" class="filter-form">
+        <!-- Keep current type if set -->
+        {% if request.args.get('property_type') %}
+        <input type="hidden" name="property_type" value="{{ request.args.get('property_type') }}">
+        {% endif %}
+
+        <div class="filter-form-grid">
+            <div class="form-group">
+                <label>City</label>
+                <input type="text" name="city" placeholder="Any city" value="{{ request.args.get('city', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Province</label>
+                <select name="province">
+                    <option value="">Any Province</option>
+                    {% for prov in ['Bulawayo','Harare','Manicaland','Mashonaland Central','Mashonaland East',
+                                    'Mashonaland West','Masvingo','Matabeleland North','Matabeleland South','Midlands'] %}
+                    <option value="{{ prov }}" {{ 'selected' if request.args.get('province') == prov }}>{{ prov }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Min Price / night</label>
+                <input type="number" name="min_price" placeholder="$0" min="0" value="{{ request.args.get('min_price', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Max Price / night</label>
+                <input type="number" name="max_price" placeholder="Any" min="0" value="{{ request.args.get('max_price', '') }}">
+            </div>
+            <div class="form-group">
+                <label>Bedrooms (min)</label>
+                <select name="min_bedrooms">
+                    <option value="">Any</option>
+                    {% for n in [1,2,3,4] %}
+                    <option value="{{ n }}" {{ 'selected' if request.args.get('min_bedrooms') == n|string }}>{{ n }}+</option>
+                    {% endfor %}
+                </select>
+            </div>
+        </div>
+
+        <div class="filter-form-actions">
+            <button type="submit" class="btn btn-primary">Apply Filters</button>
+            <a href="/properties" class="btn btn-outline">Clear All</a>
+        </div>
+    </form>
+</div>
+
+
+<!-- ===== RESULTS HEADER ===== -->
+<div class="results-header">
+    {% if properties %}
+    <span class="results-count">
+        <strong>{{ properties|length }}</strong>
+        {% if properties|length == 1 %}property{% else %}properties{% endif %}
+        {% if request.args.get('city') %} in <strong>{{ request.args.get('city') }}</strong>{% endif %}
+        {% if request.args.get('province') %} · <strong>{{ request.args.get('province') }}</strong>{% endif %}
+        {% if request.args.get('property_type') %} · <strong>{{ request.args.get('property_type') | capitalize }}s</strong>{% endif %}
+    </span>
+    {% endif %}
+    {% if request.args.values() | list | select | list %}
+    <a href="/properties" class="results-clear">✕ Clear filters</a>
+    {% endif %}
+</div>
+
+
+<!-- ===== PROPERTY GRID ===== -->
+{% if properties %}
+<div class="property-grid">
+    {% for prop in properties %}
+    <article class="property-card">
+        <a href="/property/{{ prop.property_id }}" class="property-card-link">
+
+            <!-- Image -->
+            <div class="property-image">
+                {% set fallbacks = {
+                    'house':     'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=560&fit=crop&q=80',
+                    'apartment': 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=560&fit=crop&q=80',
+                    'villa':     'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&h=560&fit=crop&q=80',
+                    'cabin':     'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=560&fit=crop&q=80',
+                    'studio':    'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&h=560&fit=crop&q=80',
+                    'farm':      'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=800&h=560&fit=crop&q=80',
+                    'room':      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=560&fit=crop&q=80'
+                } %}
+                {% set img_src = prop.first_image or fallbacks.get(prop.property_type | lower, 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=560&fit=crop&q=80') %}
+                <img src="{{ img_src }}" alt="{{ prop.title }}" loading="lazy">
+
+                <!-- Badges -->
+                <span class="property-badge">{{ prop.property_type | capitalize }}</span>
+
+                {% if prop.is_available == 'YES' or prop.is_available == None %}
+                <span class="property-avail property-avail--yes">● Available</span>
+                {% else %}
+                <span class="property-avail property-avail--no">● Unavailable</span>
+                {% endif %}
+
+
+            </div>
+
+            <!-- Content -->
+            <div class="property-content">
+                <div class="property-location">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    {{ prop.city }}{% if prop.province %}, {{ prop.province }}{% endif %}
+                </div>
+                <h3 class="property-title">{{ prop.title }}</h3>
+                <div class="property-features">
+                    <span class="property-feature">🛏 {{ prop.num_bedrooms }} bed</span>
+                    <span class="property-feature">🚿 {{ prop.num_bathrooms }} bath</span>
+                    <span class="property-feature">👥 {{ prop.max_guests }} guests</span>
+                </div>
+                <div class="property-footer">
+                    <div class="property-price">
+                        ${{ prop.price_per_night }}<span> / night</span>
+                    </div>
+                    <div class="property-rating">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        4.8
+                    </div>
+                </div>
+            </div>
+
+        </a>
+    </article>
+    {% endfor %}
+</div>
+
+{% else %}
+<div class="empty-state">
+    <div class="empty-state__icon">🔍</div>
+    <h3>No properties found</h3>
+    <p>Try adjusting your filters — there are great stays out there!</p>
+    <a href="/properties" class="btn btn-primary" style="margin-top:16px;">View all properties</a>
+</div>
+{% endif %}
+
+<script>
+// ── Advanced filter panel toggle ───────────────────────────
+const filterToggle = document.getElementById('filterToggle');
+const filterPanel  = document.getElementById('filterPanel');
+filterToggle.addEventListener('click', function () {
+    filterPanel.classList.toggle('open');
+    this.classList.toggle('active');
+});
+
+</script>
+
+{% endblock %}

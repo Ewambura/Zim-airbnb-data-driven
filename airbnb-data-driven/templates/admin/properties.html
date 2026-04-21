@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+
+{% block title %}All Properties - ZimBnB Admin{% endblock %}
+
+{% block content %}
+<a href="/admin/dashboard" class="back-link">&larr; Back to Admin Dashboard</a>
+<h1 style="margin-bottom:30px;">All Properties</h1>
+
+<!-- Properties Table -->
+<div class="section">
+    {% if properties %}
+    <div class="card">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Location</th>
+                    <th>Type</th>
+                    <th>Price/Night</th>
+                    <th>Owner</th>
+                    <th>Owner Email</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for prop in properties %}
+                <tr>
+                    <td>{{ prop.property_id }}</td>
+                    <td>
+                        <a href="/property/{{ prop.property_id }}" style="color:#ff385c; text-decoration:none;">
+                            {{ prop.title }}
+                        </a>
+                    </td>
+                    <td>{{ prop.city }}, {{ prop.province }}</td>
+                    <td>{{ prop.property_type }}</td>
+                    <td>${{ prop.price_per_night }}</td>
+                    <td>
+                        {% if prop.owner_first_name %}
+                        {{ prop.owner_first_name }} {{ prop.owner_last_name }}
+                        {% elif prop.owner_business %}
+                        {{ prop.owner_business }}
+                        {% else %}
+                        Owner #{{ prop.owner_id }}
+                        {% endif %}
+                    </td>
+                    <td>{{ prop.owner_email or '—' }}</td>
+                    <td>
+                        <a href="/property/{{ prop.property_id }}" class="btn btn-secondary" style="padding:5px 10px; font-size:12px;">View</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <p style="margin-top:15px; color:#6b7280;">Showing {{ properties|length }} property(ies)</p>
+    {% else %}
+    <div class="card">
+        <div class="card-body" style="text-align:center; padding:50px;">
+            <h3 style="color:#6b7280;">No properties found</h3>
+            <p style="color:#9ca3af; margin-top:10px;">No properties have been listed yet.</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}ZimBnB — Discover Zimbabwe's Finest Stays{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/showcase.css') }}">
+{% endblock %}
+
+{% block content %}
+
+<!-- ===== HERO ===== -->
+<section class="home-hero">
+    <div class="home-hero__overlay"></div>
+    <div class="home-hero__content">
+        <p class="home-hero__eyebrow">Welcome to ZimBnB</p>
+        <h1 class="home-hero__title">Discover Zimbabwe's<br>Finest Stays</h1>
+        <p class="home-hero__sub">From Harare's vibrant city apartments to Victoria Falls' breathtaking lodges —<br>find the perfect place to call home.</p>
+
+        <!-- Hero Search -->
+        <div class="hero-search-card">
+            <form action="/properties" method="GET" class="hero-search-form">
+                <div class="hero-search-tabs">
+                    <button type="button" class="hero-tab active" data-days="2" data-offset="5">This weekend</button>
+                    <button type="button" class="hero-tab" data-days="7" data-offset="1">Any week</button>
+                    <button type="button" class="hero-tab" data-days="4" data-offset="30">Next month</button>
+                </div>
+                <div class="hero-search-fields">
+                    <div class="hero-field">
+                        <label>Where</label>
+                        <input type="text" name="city" id="heroCity" placeholder="Any city in Zimbabwe" autocomplete="off">
+                    </div>
+                    <div class="hero-field-sep"></div>
+                    <div class="hero-field">
+                        <label>Check-in</label>
+                        <input type="date" id="heroCheckin">
+                    </div>
+                    <div class="hero-field-sep"></div>
+                    <div class="hero-field">
+                        <label>Check-out</label>
+                        <input type="date" id="heroCheckout">
+                    </div>
+                    <div class="hero-field-sep"></div>
+                    <div class="hero-field">
+                        <label>Type</label>
+                        <select name="property_type">
+                            <option value="">Any type</option>
+                            <option value="house">House</option>
+                            <option value="apartment">Apartment</option>
+                            <option value="villa">Villa</option>
+                            <option value="cabin">Cabin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="hero-search-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                        </svg>
+                        Search
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</section>
+
+
+<!-- ===== EXPLORE ZIMBABWE ===== -->
+<section class="home-section">
+    <h2 class="section-title">Explore Zimbabwe</h2>
+    <p class="section-sub">Popular destinations waiting for you</p>
+    <div class="destination-grid">
+        <a href="/properties?province=Harare" class="dest-card" style="background-image:url('https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600&h=400&fit=crop')">
+            <div class="dest-overlay"></div>
+            <div class="dest-info"><h3>Harare</h3><span>Capital city</span></div>
+        </a>
+        <a href="/properties?province=Bulawayo" class="dest-card" style="background-image:url('https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&h=400&fit=crop')">
+            <div class="dest-overlay"></div>
+            <div class="dest-info"><h3>Bulawayo</h3><span>City of Kings</span></div>
+        </a>
+        <a href="/properties?city=Victoria+Falls" class="dest-card dest-card--tall" style="background-image:url('https://images.unsplash.com/photo-1516026672322-bc52d61a55d5?w=600&h=800&fit=crop')">
+            <div class="dest-overlay"></div>
+            <div class="dest-info"><h3>Victoria Falls</h3><span>Wonder of the World</span></div>
+        </a>
+        <a href="/properties?province=Manicaland" class="dest-card" style="background-image:url('https://images.unsplash.com/photo-1501854140801-50d01698950b?w=600&h=400&fit=crop')">
+            <div class="dest-overlay"></div>
+            <div class="dest-info"><h3>Manicaland</h3><span>Eastern Highlands</span></div>
+        </a>
+        <a href="/properties?province=Masvingo" class="dest-card" style="background-image:url('https://images.unsplash.com/photo-1509316785289-025f5b846b35?w=600&h=400&fit=crop')">
+            <div class="dest-overlay"></div>
+            <div class="dest-info"><h3>Masvingo</h3><span>Great Zimbabwe</span></div>
+        </a>
+    </div>
+</section>
+
+
+<!-- ===== PROPERTY TYPES ===== -->
+<section class="home-section">
+    <h2 class="section-title">Browse by type</h2>
+    <div class="type-grid">
+        <a href="/properties" class="type-card">
+            <span class="type-icon"><i data-lucide="layout-grid"></i></span>
+            <span class="type-label">All stays</span>
+        </a>
+        <a href="/properties?property_type=house" class="type-card">
+            <span class="type-icon"><i data-lucide="home"></i></span>
+            <span class="type-label">Houses</span>
+        </a>
+        <a href="/properties?property_type=apartment" class="type-card">
+            <span class="type-icon"><i data-lucide="building-2"></i></span>
+            <span class="type-label">Apartments</span>
+        </a>
+        <a href="/properties?property_type=villa" class="type-card">
+            <span class="type-icon"><i data-lucide="landmark"></i></span>
+            <span class="type-label">Villas</span>
+        </a>
+        <a href="/properties?property_type=cabin" class="type-card">
+            <span class="type-icon"><i data-lucide="tree-pine"></i></span>
+            <span class="type-label">Cabins</span>
+        </a>
+    </div>
+</section>
+
+
+<!-- ===== FEATURED PROPERTIES ===== -->
+{% if featured %}
+<section class="home-section">
+    <div class="section-header">
+        <div>
+            <h2 class="section-title">Featured stays</h2>
+            <p class="section-sub">Hand-picked properties across Zimbabwe</p>
+        </div>
+        <a href="/properties" class="section-link">View all →</a>
+    </div>
+    <div class="featured-grid">
+        {% for prop in featured %}
+        <a href="/property/{{ prop.property_id }}" class="feat-card">
+            <div class="feat-card__img">
+                {% set fallbacks = {
+                    'house':     'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=560&fit=crop&q=80',
+                    'apartment': 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800&h=560&fit=crop&q=80',
+                    'villa':     'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=800&h=560&fit=crop&q=80',
+                    'cabin':     'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=560&fit=crop&q=80',
+                    'studio':    'https://images.unsplash.com/photo-1540518614846-7eded433c457?w=800&h=560&fit=crop&q=80',
+                    'farm':      'https://images.unsplash.com/photo-1500076656116-558758c991c1?w=800&h=560&fit=crop&q=80',
+                    'room':      'https://images.unsplash.com/photo-1631049307264-da0ec9d70304?w=800&h=560&fit=crop&q=80'
+                } %}
+                {% set img_src = prop.first_image or fallbacks.get(prop.property_type | lower, 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=560&fit=crop&q=80') %}
+                <img src="{{ img_src }}" alt="{{ prop.title }}">
+                <span class="feat-card__type">{{ prop.property_type | capitalize }}</span>
+                {% if prop.is_available == 'YES' or prop.is_available == None %}
+                <span class="feat-card__avail feat-card__avail--yes">● Available</span>
+                {% else %}
+                <span class="feat-card__avail feat-card__avail--no">● Unavailable</span>
+                {% endif %}
+            </div>
+            <div class="feat-card__body">
+                <div class="feat-card__location">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    {{ prop.city }}{% if prop.province %}, {{ prop.province }}{% endif %}
+                </div>
+                <h3 class="feat-card__title">{{ prop.title }}</h3>
+                <div class="feat-card__meta">
+                    <span>{{ prop.num_bedrooms }} bed · {{ prop.num_bathrooms }} bath · {{ prop.max_guests }} guests</span>
+                </div>
+                <div class="feat-card__footer">
+                    <span class="feat-card__price">${{ prop.price_per_night }}<span> / night</span></span>
+                    <span class="feat-card__rating">
+                        <svg width="13" height="13" viewBox="0 0 24 24" fill="#f59e0b">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                        </svg>
+                        4.8
+                    </span>
+                </div>
+            </div>
+        </a>
+        {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+
+<!-- ===== HOW IT WORKS ===== -->
+<section class="home-section home-section--alt">
+    <h2 class="section-title">How ZimBnB works</h2>
+    <p class="section-sub">Three simple steps to your perfect stay</p>
+    <div class="how-grid">
+        <div class="how-step">
+            <div class="how-icon"><i data-lucide="search"></i></div>
+            <h3>Search</h3>
+            <p>Browse hundreds of unique stays across Zimbabwe — filter by city, price, size, and type.</p>
+        </div>
+        <div class="how-step">
+            <div class="how-icon"><i data-lucide="calendar-check"></i></div>
+            <h3>Book</h3>
+            <p>Pick your dates, select guests, and confirm your booking in under a minute.</p>
+        </div>
+        <div class="how-step">
+            <div class="how-icon"><i data-lucide="home"></i></div>
+            <h3>Stay</h3>
+            <p>Arrive, relax, and enjoy your Zimbabwe experience. Then share your review.</p>
+        </div>
+    </div>
+</section>
+
+
+<!-- ===== HOST CTA ===== -->
+<section class="home-section">
+    <div class="host-cta">
+        <div class="host-cta__text">
+            <h2>Own a property in Zimbabwe?</h2>
+            <p>List it on ZimBnB and start earning. Thousands of travellers are looking for unique stays like yours.</p>
+            <a href="/register" class="btn btn-primary host-cta__btn">Become a Host →</a>
+        </div>
+        <div class="host-cta__image">
+            <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=600&h=400&fit=crop" alt="Become a host">
+        </div>
+    </div>
+</section>
+
+
+
+
+<script>
+// Hero tab quick-fill dates
+(function () {
+    const tabs      = document.querySelectorAll('.hero-tab');
+    const ciInput   = document.getElementById('heroCheckin');
+    const coInput   = document.getElementById('heroCheckout');
+
+    function setDates(offsetDays, durationDays) {
+        const start = new Date();
+        start.setDate(start.getDate() + offsetDays);
+        const end = new Date(start);
+        end.setDate(end.getDate() + durationDays);
+        ciInput.value = start.toISOString().split('T')[0];
+        coInput.value = end.toISOString().split('T')[0];
+    }
+
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function () {
+            tabs.forEach(t => t.classList.remove('active'));
+            this.classList.add('active');
+            setDates(Number(this.dataset.offset), Number(this.dataset.days));
+        });
+    });
+
+    // Trigger initial active tab
+    const active = document.querySelector('.hero-tab.active');
+    if (active) active.click();
+}());
+</script>
+{% endblock %}
