@@ -9,8 +9,11 @@ class baseObject:
         self.data = []
         self.pk = None
         self.errors = []
-        self.config_path = config_path
-        self.config = yaml.safe_load(Path(self.config_path).read_text())
+        config_file = Path(config_path)
+        if not config_file.is_absolute() and not config_file.exists():
+            config_file = Path(__file__).resolve().parent.parent / config_file
+        self.config_path = str(config_file)
+        self.config = yaml.safe_load(config_file.read_text())
         #print(type(self).__name__)
         self.tn = self.config['tables'][type(self).__name__]
         #print(self.config)
