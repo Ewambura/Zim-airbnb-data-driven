@@ -32,6 +32,24 @@ class user(baseObject):
             return True
         else:
             return False
+    def verify_update(self):
+        self.errors = []
+        if '@' not in self.data[0]['email']:
+            self.errors.append('Email must contain @')
+        if self.data[0]['role'] not in self.rolelist():
+            self.errors.append('Role does not exist')
+        if 'password2' in self.data[0]:
+            if len(self.data[0]['password']) < 3:
+                self.errors.append('Password must be at least 3 characters long')
+            if self.data[0]['password2'] != self.data[0]['password']:
+                self.errors.append('Password and Password2 must match')
+            if len(self.errors) == 0:
+                self.data[0]['password'] = self.hashpassword(self.data[0]['password'])
+        if len(self.errors) == 0:
+            return True
+        else:
+            return False
+
     def tryLogin(self,un, pw):
         self.data = []
         pw=self.hashpassword(pw)

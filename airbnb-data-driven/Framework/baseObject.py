@@ -80,6 +80,11 @@ class baseObject:
         sql = f'''DELETE FROM `{self.tn}` WHERE `{self.pk}` = %s;'''
         self.cur.execute(sql,[id])
 
+    def truncate(self):
+        sql = f'TRUNCATE TABLE `{self.tn}`;'
+        self.cur.execute(sql)
+        self.data = []
+
     def update(self, id, n=0):
         sql = f'UPDATE `{self.tn}` SET '
         tokens = []

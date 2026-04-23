@@ -1,107 +1,164 @@
-# ZimBnB - Property Rental Platform
+# ZimBnB — Property Rental Platform
 
-A data-driven property rental application for Zimbabwe, built with Python/Flask and MySQL. ZimBnB connects property owners with guests seeking short-term accommodation across all ten provinces of Zimbabwe.
-
----
-
-## Business Rules
-
-### Users & Accounts
-- Anyone can register with a **unique email** and a password of at least 3 characters
-- Passwords are stored securely (hashed — never plain text)
-- Two roles exist: **Guest/Owner** (customers) and **Admin** (platform staff)
-
-### Properties
-- Any owner can create a listing — price per night must be greater than $0
-- Only the **property owner** can edit, update, or delete their own listings
-- A property **cannot be deleted** if it has current or upcoming bookings
-- Owners can add and remove photos from their own properties
-- Properties are listed across Zimbabwe's 10 provinces
-
-### Availability
-- Only the property owner can set availability dates on their listing
-- Properties have an availability range (start date, end date) and status flag
-
-### Bookings
-- Guests can book any available property
-- Check-out date must be **after** check-in (minimum 1 night)
-- The system checks for conflicts — **no double-bookings** allowed
-- Only the guest who made a booking can cancel it
-
-### Reviews
-- A guest can only review a property **after completing a stay** there
-- Each guest can leave **one review per property**
-- Ratings must be between **1 and 5**
-
-### Admins
-- Admins have full access to manage users, properties, bookings, and reviews across the platform
+A data-driven property rental web application for Zimbabwe, built with Python (Flask) and MySQL. ZimBnB connects property owners with guests seeking short-term accommodation across all ten provinces of Zimbabwe.
 
 ---
 
-## Quick Start
+## Table of Contents
 
-```bash
-cd Framework
-python3 app.py
-```
+1. [Project Overview](#project-overview)
+2. [User Types](#user-types)
+3. [Demo Credentials](#demo-credentials)
+4. [Use Cases](#use-cases)
+5. [Relational Diagram](#relational-diagram)
+6. [Database Schema](#database-schema)
+7. [SQL Views](#sql-views)
+8. [Business Rules](#business-rules)
 
-The app runs on `http://localhost:5001`
+---
 
-## Running Tests
+## Project Overview
 
-```bash
-cd Framework
-python3 test.py -v
-```
+ZimBnB is a full-stack rental platform that allows property owners to list their properties and guests to search, book, and review them. An admin panel provides platform-wide oversight and management.
 
-61 unit tests covering all model classes.
+- **Backend:** Python / Flask
+- **Database:** MySQL
+- **Frontend:** HTML, CSS (Jinja2 templates)
+- **Architecture:** Data-driven ORM layer with parameterized queries
+
+---
+
+## User Types
+
+The system has three distinct user types, each with their own dashboard and permissions.
+
+| User Type | Description |
+|-----------|-------------|
+| **Guest** | Registered users who can search properties, make bookings, cancel bookings, and leave reviews after completed stays. |
+| **Property Owner** | Registered users who can list properties, manage availability, upload images, and track bookings and earnings. |
+| **Admin** | Platform staff with full access to manage all users, properties, bookings, and reviews across the system. |
+
+---
+
+## Demo Credentials
+
+Use the following credentials to log in and explore each user role.
+
+| Name | Role | Email | Password |
+|------|------|-------|----------|
+| Anderson Kuda | Admin | `kudademo@gmail.com` | `123xyz` |
+| Boris Bsmith | Property Owner | `datademo@gmail.com` | `123xyz` |
+| Pavi GA | Guest | `enddemo@gmail.com` | `123xyz` |
+
+---
+
+## Use Cases
+
+### Guest
+- Register and log in to the platform
+- Browse and search available properties by location, price, bedrooms, and type
+- View full property details and photos
+- Book a property for a selected date range
+- Cancel an existing booking
+- Leave a review and rating after a completed stay
+- View upcoming and past bookings from the dashboard
+
+### Property Owner
+- Register and log in to the platform
+- Create, edit, and delete property listings
+- Upload and manage property photos
+- Set and manage availability dates for each property
+- View all incoming bookings across their properties
+- Track total earnings and per-property revenue breakdowns
+- View reviews received from guests
+
+### Admin
+- View a platform-wide dashboard with key statistics (total users, bookings, revenue, average rating)
+- Manage all registered users (view, search, reset passwords)
+- View and manage all properties across the platform
+- View and manage all bookings
+- View and delete reviews
+- Monitor recent platform activity
+
+---
+
+## Relational Diagram
+
+![Relational Schema](static/Relational_schema.png)
 
 ---
 
 ## Database Schema
 
-### Tables (8 total)
-- `USER` - All user accounts with authentication credentials
-- `ADMIN` - Administrator profiles (subtype of USER)
-- `GUEST` - Guest profiles (subtype of USER)
-- `PROPERTYOWNER` - Property owner profiles (subtype of USER)
-- `PROPERTY` - Property listings with details, pricing, and availability
-- `PROPERTY_IMAGE` - Property photos
-- `BOOKING` - Reservations
-- `REVIEW` - Guest reviews and ratings
+The database consists of **8 tables** using a supertype/subtype pattern for user roles.
+
+| Table | Description |
+|-------|-------------|
+| `USER` | Core user accounts — stores credentials, role, and registration date for all users |
+| `ADMIN` | Admin profile — subtype of USER, for platform staff |
+| `GUEST` | Guest profile — subtype of USER, for guests making bookings |
+| `PROPERTYOWNER` | Owner profile — subtype of USER, for property owners |
+| `PROPERTY` | Property listings — title, description, location, pricing, and capacity |
+| `PROPERTY_IMAGE` | Photos attached to property listings |
+| `BOOKING` | Reservations linking a guest to a property with check-in/check-out dates |
+| `REVIEW` | Ratings and comments left by guests after a completed stay |
 
 ### Key Relationships
-- Each property belongs to one property owner
-- Each booking links one guest to one property
-- Each review links one guest to one property they stayed at
-- ADMIN, GUEST, and PROPERTYOWNER are subtypes of USER
+
+- `ADMIN`, `GUEST`, and `PROPERTYOWNER` are all subtypes of `USER` (linked by `user_id`)
+- Each `PROPERTY` belongs to one `PROPERTYOWNER`
+- Each `BOOKING` links one `GUEST` to one `PROPERTY`
+- Each `REVIEW` is tied to a `BOOKING`, linking a `GUEST` to a `PROPERTY` they have stayed at
+- `PROPERTY_IMAGE` records are associated with a specific `PROPERTY`
 
 ---
 
-## Project Structure
+## SQL Views
 
-```
-airbnb-data-driven/
-├── Framework/
-│   ├── app.py              # Flask application
-│   ├── baseObject.py       # Base ORM class
-│   ├── property.py         # Property management
-│   ├── booking.py          # Booking logic
-│   ├── review.py           # Review system
-│   ├── propertyimage.py    # Image handling
-│   ├── guest.py            # Guest functions
-│   ├── propertyowner.py    # Owner functions
-│   ├── admin.py            # Admin functions
-│   ├── user.py             # Authentication
-│   └── test.py             # Unit tests
-├── templates/              # HTML templates
-├── static/                 # CSS and uploads
-├── config.yml              # Database config
-└── API_DOCUMENTATION.md    # API reference
-```
+### View 1 — Property Performance Summary
+
+**Purpose:** Returns each property alongside its total number of bookings and average guest rating. Useful for identifying top-performing listings and for owner dashboard reporting.
+
+**Tables used:** `PROPERTY`, `BOOKING`, `REVIEW`
+
+**Implemented as:** `getPropertiesWithStats(owner_id)` in `propertyowner.py`
 
 ---
 
-## Documentation
+### View 2 — Owner Earnings Overview
 
-See [API_DOCUMENTATION.md](API_DOCUMENTATION.md) for complete API reference.
+**Purpose:** Returns each property owner with their total number of properties, total bookings received, and total earnings across all their listings. Useful for admin-level financial reporting and owner dashboards.
+
+**Tables used:** `PROPERTYOWNER`, `PROPERTY`, `BOOKING`
+
+**Implemented as:** `getEarningsByProperty(owner_id)` in `propertyowner.py`
+
+---
+
+### View 3 — Guest Booking History with Property Details
+
+**Purpose:** Returns a full history of bookings for each guest, including the property name, location, check-in/check-out dates, and total cost. Useful for guest dashboards and booking management.
+
+**Tables used:** `GUEST`, `BOOKING`, `PROPERTY`
+
+**Implemented as:** `getBookingHistory(guest_id)` in `guest.py`
+
+---
+
+## Business Rules
+
+| Area | Rule |
+|------|------|
+| **Registration** | All users must register with a unique email and a password of at least 3 characters |
+| **Passwords** | Passwords are stored securely as hashed values — never plain text |
+| **Properties** | Price per night must be greater than $0 |
+| **Ownership** | Only the property owner can edit, update, or delete their own listings |
+| **Deletion** | A property cannot be deleted if it has current or upcoming bookings |
+| **Availability** | Only the property owner can set availability dates for their listing |
+| **Bookings** | Check-out date must be after check-in date (minimum 1 night) |
+| **Double-booking** | The system checks for conflicts — no two bookings can overlap for the same property |
+| **Cancellation** | Only the guest who made a booking can cancel it |
+| **Reviews** | A guest can only leave a review after completing a stay at that property |
+| **One review** | Each guest may leave only one review per property |
+| **Ratings** | Ratings must be between 1 and 5 |
+| **Admin access** | Admins have full access to manage all users, properties, bookings, and reviews |
