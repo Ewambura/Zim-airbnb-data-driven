@@ -194,8 +194,8 @@ def register():
                 o = PropertyOwner(CONFIG_PATH)
                 o.data = [{
                     'owner_id': new_user_id,
-                    'business_name_': '',
-                    'payout_method': ''
+                    'business_name_': f"{first_name} {last_name}",
+                    'payout_method': 'pending'
                 }]
                 o.insert()
 

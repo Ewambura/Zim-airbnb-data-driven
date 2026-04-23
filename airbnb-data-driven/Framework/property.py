@@ -153,7 +153,7 @@ class Property(baseObject):
 		if not self.cur.fetchone():
 			self.cur.execute(
 				'INSERT INTO `PROPERTYOWNER` (owner_id, business_name_, payout_method) VALUES (%s, %s, %s);',
-				[owner_id, '', '']
+				[owner_id, 'Property Owner', 'pending']
 			)
 
 		property_data = {
