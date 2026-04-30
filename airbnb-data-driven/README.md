@@ -19,9 +19,12 @@ A data-driven property rental web application for Zimbabwe, built with Python (F
 
 ## Project Overview
 
-Group Members
-1.Chris Zvikomborero 
-2.Emmanuel Wambura
+### Group Members
+
+| # | Name |
+|---|------|
+| 1 | Chris Zvikomborero |
+| 2 | Emmanuel Wambura |
 
 ZimBnB is a full-stack rental platform that allows property owners to list their properties and guests to search, book, and review them. An admin panel provides platform-wide oversight and management.
 
